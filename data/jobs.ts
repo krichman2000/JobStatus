@@ -1315,3 +1315,22 @@ export function getJobBySlug(slug: string): JobAnalysis | undefined {
 export function getAllJobSlugs(): string[] {
   return jobs.map(job => job.slug)
 }
+
+export function getRelatedJobs(slug: string, count: number = 4): JobAnalysis[] {
+  const currentJob = getJobBySlug(slug)
+  if (!currentJob) return []
+
+  // Find jobs with similar 5-year automation risk but lower risk (safer alternatives)
+  const currentRisk = currentJob.timeline.fiveYear
+
+  return jobs
+    .filter(job => job.slug !== slug)
+    .map(job => ({
+      job,
+      // Prefer jobs with lower risk, but also consider similarity
+      score: Math.abs(job.timeline.fiveYear - currentRisk) + (job.timeline.fiveYear < currentRisk ? -20 : 10)
+    }))
+    .sort((a, b) => a.score - b.score)
+    .slice(0, count)
+    .map(item => item.job)
+}

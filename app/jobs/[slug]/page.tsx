@@ -1,10 +1,11 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getJobBySlug, getAllJobSlugs } from '@/data/jobs'
+import { getJobBySlug, getAllJobSlugs, getRelatedJobs } from '@/data/jobs'
 import MetricCard from '@/components/MetricCard'
 import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
+import ShareButtons from '@/components/ShareButtons'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -36,6 +37,9 @@ export default async function JobPage({ params }: PageProps) {
   if (!job) {
     notFound()
   }
+
+  const relatedJobs = getRelatedJobs(slug, 4)
+  const shareUrl = `https://willmyjoblast.com/jobs/${slug}`
 
   return (
     <main className="min-h-screen">
@@ -131,8 +135,66 @@ export default async function JobPage({ params }: PageProps) {
           {/* Tips */}
           <TipsList tips={job.tips} />
 
+          {/* Share */}
+          <div className="mt-10 pt-8 border-t border-slate-200">
+            <ShareButtons
+              jobTitle={job.title}
+              fiveYearRisk={job.timeline.fiveYear}
+              url={shareUrl}
+            />
+          </div>
+
+          {/* Related Jobs */}
+          {relatedJobs.length > 0 && (
+            <div className="mt-12">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                Related Careers to Explore
+              </h3>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {relatedJobs.map((relatedJob) => (
+                  <Link
+                    key={relatedJob.slug}
+                    href={`/jobs/${relatedJob.slug}`}
+                    className="block bg-white border border-slate-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all"
+                  >
+                    <div className="flex justify-between items-start">
+                      <span className="font-medium text-slate-800">{relatedJob.title}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        relatedJob.timeline.fiveYear < 40
+                          ? 'bg-green-100 text-green-700'
+                          : relatedJob.timeline.fiveYear < 60
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                      }`}>
+                        {relatedJob.timeline.fiveYear}% risk
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-4 text-center">
+                <Link
+                  href="/jobs"
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  Browse all jobs &rarr;
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Compare Jobs Link */}
+          <div className="mt-8 text-center">
+            <Link
+              href={`/compare?job1=${slug}`}
+              className="text-slate-600 hover:text-slate-800 text-sm"
+            >
+              Compare {job.title} with another job &rarr;
+            </Link>
+          </div>
+
           {/* CTA */}
-          <div className="mt-12 text-center">
+          <div className="mt-8 text-center">
             <p className="text-slate-600 mb-4">
               Want to analyze a different job or get a personalized assessment?
             </p>
