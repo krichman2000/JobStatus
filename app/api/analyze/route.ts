@@ -16,6 +16,15 @@ export async function POST(request: Request) {
       )
     }
 
+    // Basic input validation
+    const cleanedTitle = jobTitle.trim()
+    if (cleanedTitle.length < 2 || cleanedTitle.length > 100) {
+      return NextResponse.json(
+        { error: 'Please enter a valid job title (2-100 characters).' },
+        { status: 400 }
+      )
+    }
+
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json(
         { error: 'API key not configured' },
@@ -23,9 +32,20 @@ export async function POST(request: Request) {
       )
     }
 
-    const prompt = `Analyze the job title "${jobTitle}" and provide a comprehensive AI impact assessment.
+    const prompt = `Analyze the job title "${cleanedTitle}" and provide a comprehensive AI impact assessment.
 
-Provide your analysis in the following JSON format only, with no additional text:
+FIRST: Determine if this is a legitimate, legal occupation. If the input is:
+- Not a real job (e.g., "asdfgh", random words)
+- An illegal activity (e.g., "drug dealer", "hitman")
+- Inappropriate or not a profession
+
+Then return this exact JSON:
+{
+  "error": "not_a_job",
+  "message": "Please enter a valid job title like 'Software Engineer', 'Nurse', or 'Accountant'."
+}
+
+For legitimate jobs, provide your analysis in this JSON format:
 
 {
   "timeline": {
@@ -64,19 +84,37 @@ Provide your analysis in the following JSON format only, with no additional text
   ]
 }
 
+CRITICAL - Understand what AI CAN and CANNOT automate:
+
+AI CAN automate (high scores):
+- Information processing, research, data analysis
+- Text/content generation (writing, emails, reports)
+- Image/video creation and editing
+- Code generation and debugging
+- Pattern recognition in data
+- Customer service chat/email
+- Scheduling, bookkeeping, data entry
+
+AI CANNOT automate (low scores, typically under 30%):
+- Physical labor requiring human presence (plumbing, electrical, construction)
+- Hands-on healthcare (nursing, surgery, physical therapy, dental work)
+- In-person human services (haircuts, massage, childcare, elderly care)
+- Physical repair and maintenance work
+- Work in unpredictable physical environments
+- Jobs requiring physical dexterity with varied objects
+- Emotional support and human connection roles
+
 Guidelines:
-- Be brutally honest. AI is advancing rapidly:
+- Be realistic about physical vs. knowledge work distinction
+- Skilled trades (electrician, plumber, HVAC) are highly protected - typically under 25% automation
+- Healthcare roles requiring physical patient care are protected - typically under 35%
+- Knowledge work and office jobs face much higher automation risk
+- Be brutally honest about knowledge work:
   - Software engineers: AI writes 30-50% of code at many companies today
   - Writers/marketers: AI generates drafts, emails, ad copy routinely
   - Analysts: AI summarizes data, writes reports, spots patterns
   - Customer service: Chatbots handle majority of tier-1 inquiries
-- timeline: Overall % of tasks that could be automated at each time horizon (3, 5, 7 years)
-- routineAutomation: % of repetitive, predictable tasks AI could handle
-- complexAutomation: % of judgment-based work AI could meaningfully assist with
-- positionDemand: Expected % change in job openings (negative = fewer jobs, positive = more jobs)
-- wagePressure: How much AI will push down compensation (0 = none, 100 = severe pressure)
-- reskillUrgency: How quickly someone must adapt (0 = years to prepare, 100 = urgent now)
-- Don't lowball to be reassuring. Give honest, useful estimates.
+- Don't lowball physical jobs OR inflate knowledge job safety
 - Return ONLY valid JSON, no markdown or explanation.`
 
     const message = await anthropic.messages.create({
@@ -96,6 +134,14 @@ Guidelines:
     }
 
     const result = JSON.parse(content.text)
+
+    // Check if the AI returned an error for invalid job
+    if (result.error === 'not_a_job') {
+      return NextResponse.json(
+        { error: result.message || 'Please enter a valid job title.' },
+        { status: 400 }
+      )
+    }
 
     return NextResponse.json(result)
   } catch (error) {
