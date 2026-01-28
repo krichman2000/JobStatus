@@ -2,16 +2,23 @@
 
 import { useState } from 'react'
 import JobInput from '@/components/JobInput'
-import ResultCard from '@/components/ResultCard'
+import MetricCard from '@/components/MetricCard'
 import TipsList from '@/components/TipsList'
 
+interface MetricData {
+  score: number
+  description: string
+}
+
 interface AnalysisResult {
-  percentages: {
-    threeYear: number
-    fiveYear: number
-    sevenYear: number
+  metrics: {
+    routineAutomation: MetricData
+    complexAutomation: MetricData
+    positionDemand: MetricData
+    wagePressure: MetricData
+    reskillUrgency: MetricData
   }
-  explanation: string
+  summary: string
   tips: string[]
   jobTitle: string
 }
@@ -62,8 +69,8 @@ export default function Home() {
             How will AI impact your career?
           </h2>
           <p className="text-lg text-slate-600 mb-8">
-            Enter your job title to get personalized insights about AI&apos;s potential impact
-            and actionable steps to stay ahead.
+            Get an honest, comprehensive assessment of AI&apos;s impact on your role
+            across 5 key dimensions.
           </p>
 
           <JobInput onSubmit={handleAnalyze} isLoading={isLoading} />
@@ -104,30 +111,53 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Percentage Cards */}
-            <div className="grid md:grid-cols-3 gap-4 mb-10">
-              <ResultCard
-                years={3}
-                percentage={result.percentages.threeYear}
-              />
-              <ResultCard
-                years={5}
-                percentage={result.percentages.fiveYear}
-              />
-              <ResultCard
-                years={7}
-                percentage={result.percentages.sevenYear}
-              />
+            {/* Summary */}
+            <div className="bg-slate-800 text-white rounded-xl p-6 mb-8">
+              <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-2">
+                Overall Assessment
+              </h3>
+              <p className="text-lg leading-relaxed">
+                {result.summary}
+              </p>
             </div>
 
-            {/* Explanation */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-800 mb-3">
-                Why these estimates?
-              </h3>
-              <p className="text-slate-600 leading-relaxed">
-                {result.explanation}
-              </p>
+            {/* Metrics Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+              <MetricCard
+                title="Routine Task Automation"
+                score={result.metrics.routineAutomation.score}
+                description={result.metrics.routineAutomation.description}
+                type="percentage"
+                icon="routine"
+              />
+              <MetricCard
+                title="Complex Task Automation"
+                score={result.metrics.complexAutomation.score}
+                description={result.metrics.complexAutomation.description}
+                type="percentage"
+                icon="complex"
+              />
+              <MetricCard
+                title="Job Market Outlook"
+                score={result.metrics.positionDemand.score}
+                description={result.metrics.positionDemand.description}
+                type="demand"
+                icon="market"
+              />
+              <MetricCard
+                title="Wage Pressure"
+                score={result.metrics.wagePressure.score}
+                description={result.metrics.wagePressure.description}
+                type="percentage"
+                icon="wage"
+              />
+              <MetricCard
+                title="Reskill Urgency"
+                score={result.metrics.reskillUrgency.score}
+                description={result.metrics.reskillUrgency.description}
+                type="percentage"
+                icon="reskill"
+              />
             </div>
 
             {/* Tips */}
@@ -140,7 +170,7 @@ export default function Home() {
       <footer className="py-8 px-4 border-t border-slate-200">
         <div className="max-w-4xl mx-auto text-center text-sm text-slate-500">
           <p>
-            These estimates are AI-generated insights, not definitive predictions.
+            These estimates are AI-generated insights based on current trends.
             Use them as a starting point for your career planning.
           </p>
         </div>

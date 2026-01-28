@@ -23,17 +23,34 @@ export async function POST(request: Request) {
       )
     }
 
-    const prompt = `Analyze the job title "${jobTitle}" and estimate what percentage of the tasks in this role could be automated by AI. This is NOT about job loss - it's about which tasks might be assisted or handled by AI tools.
+    const prompt = `Analyze the job title "${jobTitle}" and provide a comprehensive AI impact assessment across 5 key metrics.
 
 Provide your analysis in the following JSON format only, with no additional text:
 
 {
-  "percentages": {
-    "threeYear": <number 0-100>,
-    "fiveYear": <number 0-100>,
-    "sevenYear": <number 0-100>
+  "metrics": {
+    "routineAutomation": {
+      "score": <number 0-100>,
+      "description": "<1 sentence on which routine/repetitive tasks are most affected>"
+    },
+    "complexAutomation": {
+      "score": <number 0-100>,
+      "description": "<1 sentence on which judgment-based or complex tasks could be automated>"
+    },
+    "positionDemand": {
+      "score": <number -50 to +50>,
+      "description": "<1 sentence on expected job market changes - negative means decline, positive means growth>"
+    },
+    "wagePressure": {
+      "score": <number 0-100>,
+      "description": "<1 sentence on expected impact on compensation - higher means more downward pressure>"
+    },
+    "reskillUrgency": {
+      "score": <number 0-100>,
+      "description": "<1 sentence on how quickly skills need to evolve>"
+    }
   },
-  "explanation": "<2-3 sentences explaining which specific tasks in this role are most likely to be automated vs. which will remain human-centered>",
+  "summary": "<2-3 sentences giving an honest overall assessment of this role's AI exposure>",
   "tips": [
     "<specific, actionable tip 1>",
     "<specific, actionable tip 2>",
@@ -43,15 +60,17 @@ Provide your analysis in the following JSON format only, with no additional text
 }
 
 Guidelines:
-- The percentages represent the portion of daily tasks that could be automated, NOT the chance of losing the job.
-- Be brutally honest. AI is advancing rapidly. Consider:
-  - Software engineers: AI already writes 30-50% of code at many companies (GitHub Copilot, Cursor, etc.)
-  - Writers/marketers: AI generates first drafts, emails, ad copy routinely
+- Be brutally honest. AI is advancing rapidly:
+  - Software engineers: AI writes 30-50% of code at many companies today
+  - Writers/marketers: AI generates drafts, emails, ad copy routinely
   - Analysts: AI summarizes data, writes reports, spots patterns
   - Customer service: Chatbots handle majority of tier-1 inquiries
-- Don't lowball estimates to be reassuring. If 70%+ of tasks could realistically be AI-assisted within the timeframe, say so.
-- Physical presence, true creativity, complex human relationships, and novel problem-solving are harder to automate.
-- Tips should help this person stay ahead of the curve.
+- routineAutomation: % of repetitive, predictable tasks AI could handle
+- complexAutomation: % of judgment-based work AI could meaningfully assist with
+- positionDemand: Expected % change in job openings (negative = fewer jobs, positive = more jobs)
+- wagePressure: How much AI will push down compensation (0 = none, 100 = severe pressure)
+- reskillUrgency: How quickly someone must adapt (0 = years to prepare, 100 = urgent now)
+- Don't lowball to be reassuring. Give honest, useful estimates.
 - Return ONLY valid JSON, no markdown or explanation.`
 
     const message = await anthropic.messages.create({
