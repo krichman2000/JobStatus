@@ -64,8 +64,8 @@ export default function Home() {
     <main className="min-h-screen">
       {/* Header */}
       <header className="py-6 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-semibold text-slate-800">WillMyJobLast</h1>
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-semibold text-slate-800">Will My Job Last</h1>
         </div>
       </header>
 
@@ -226,74 +226,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* Tools Section */}
-      <section className="py-12 px-4 bg-slate-50">
-        <div className="max-w-4xl mx-auto">
-          <h3 className="text-xl font-semibold text-slate-800 mb-2 text-center">
-            Start Learning AI Today
-          </h3>
-          <p className="text-slate-600 text-center mb-8">
-            The best way to stay ahead is to get hands-on. Try these tools and see what AI can do.
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <a
-              href="https://chat.openai.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-white rounded-lg p-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
-            >
-              <h4 className="font-medium text-slate-800 mb-1">ChatGPT</h4>
-              <p className="text-sm text-slate-600">General-purpose AI assistant for writing, coding, and research.</p>
-            </a>
-            <a
-              href="https://claude.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-white rounded-lg p-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
-            >
-              <h4 className="font-medium text-slate-800 mb-1">Claude</h4>
-              <p className="text-sm text-slate-600">AI assistant known for thoughtful, nuanced responses and long documents.</p>
-            </a>
-            <a
-              href="https://gemini.google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-white rounded-lg p-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
-            >
-              <h4 className="font-medium text-slate-800 mb-1">Gemini</h4>
-              <p className="text-sm text-slate-600">Google&apos;s AI with web search and integration with Google services.</p>
-            </a>
-            <a
-              href="https://github.com/features/copilot"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-white rounded-lg p-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
-            >
-              <h4 className="font-medium text-slate-800 mb-1">GitHub Copilot</h4>
-              <p className="text-sm text-slate-600">AI coding assistant that helps you write code faster.</p>
-            </a>
-            <a
-              href="https://www.midjourney.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-white rounded-lg p-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
-            >
-              <h4 className="font-medium text-slate-800 mb-1">Midjourney</h4>
-              <p className="text-sm text-slate-600">Create stunning images from text descriptions.</p>
-            </a>
-            <a
-              href="https://notebooklm.google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-white rounded-lg p-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all"
-            >
-              <h4 className="font-medium text-slate-800 mb-1">NotebookLM</h4>
-              <p className="text-sm text-slate-600">AI research assistant that works with your documents and notes.</p>
-            </a>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-slate-200">

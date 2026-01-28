@@ -43,7 +43,7 @@ export default async function JobPage({ params }: PageProps) {
       <header className="py-6 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-2xl font-semibold text-slate-800 hover:text-slate-600">
-            WillMyJobLast
+            Will My Job Last
           </Link>
           <Link
             href="/"

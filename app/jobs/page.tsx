@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { jobs } from '@/data/jobs'
 
 export const metadata: Metadata = {
-  title: 'Browse All Jobs - WillMyJobLast',
+  title: 'Browse All Jobs - Will My Job Last',
   description: 'Explore AI impact assessments for 100 common jobs. See how automation will affect different careers and what you can do to stay ahead.',
 }
 
@@ -31,7 +31,7 @@ export default function JobsPage() {
       <header className="py-6 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-2xl font-semibold text-slate-800 hover:text-slate-600">
-            WillMyJobLast
+            Will My Job Last
           </Link>
           <Link
             href="/"
