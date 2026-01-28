@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import JobInput from '@/components/JobInput'
 import MetricCard from '@/components/MetricCard'
 import TimelineCard from '@/components/TimelineCard'
@@ -180,6 +181,48 @@ export default function Home() {
 
             {/* Tips */}
             <TipsList tips={result.tips} />
+          </div>
+        </section>
+      )}
+
+      {/* Popular Jobs Section */}
+      {!result && !isLoading && (
+        <section className="py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            <h3 className="text-xl font-semibold text-slate-800 mb-2 text-center">
+              Popular Jobs
+            </h3>
+            <p className="text-slate-600 text-center mb-8">
+              Quick access to AI impact assessments for common careers.
+            </p>
+            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              {[
+                { slug: 'software-engineer', title: 'Software Engineer' },
+                { slug: 'accountant', title: 'Accountant' },
+                { slug: 'registered-nurse', title: 'Registered Nurse' },
+                { slug: 'teacher', title: 'Teacher' },
+                { slug: 'lawyer', title: 'Lawyer' },
+                { slug: 'graphic-designer', title: 'Graphic Designer' },
+                { slug: 'data-analyst', title: 'Data Analyst' },
+                { slug: 'electrician', title: 'Electrician' },
+              ].map((job) => (
+                <Link
+                  key={job.slug}
+                  href={`/jobs/${job.slug}`}
+                  className="block bg-white border border-slate-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-md transition-all text-center"
+                >
+                  <span className="text-slate-800 font-medium">{job.title}</span>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center">
+              <Link
+                href="/jobs"
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Browse all 100 jobs &rarr;
+              </Link>
+            </div>
           </div>
         </section>
       )}
