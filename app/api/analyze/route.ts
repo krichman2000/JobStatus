@@ -44,10 +44,14 @@ Provide your analysis in the following JSON format only, with no additional text
 
 Guidelines:
 - The percentages represent the portion of daily tasks that could be automated, NOT the chance of losing the job.
-- Be honest and direct. AI writing tools already produce marketing copy, code, articles, and more. Factor in current capabilities, not just future ones.
-- For knowledge work involving text, data, or routine decisions, estimates should reflect that AI can already do much of this today.
-- Consider: repetitive vs. creative tasks, physical presence needs, emotional intelligence, complex judgment calls.
-- Tips should help this person focus on the human-centered parts of their work.
+- Be brutally honest. AI is advancing rapidly. Consider:
+  - Software engineers: AI already writes 30-50% of code at many companies (GitHub Copilot, Cursor, etc.)
+  - Writers/marketers: AI generates first drafts, emails, ad copy routinely
+  - Analysts: AI summarizes data, writes reports, spots patterns
+  - Customer service: Chatbots handle majority of tier-1 inquiries
+- Don't lowball estimates to be reassuring. If 70%+ of tasks could realistically be AI-assisted within the timeframe, say so.
+- Physical presence, true creativity, complex human relationships, and novel problem-solving are harder to automate.
+- Tips should help this person stay ahead of the curve.
 - Return ONLY valid JSON, no markdown or explanation.`
 
     const message = await anthropic.messages.create({
