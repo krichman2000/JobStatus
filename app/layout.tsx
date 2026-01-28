@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Jobstatus - AI Job Security Analyzer',
+  title: 'WillMyJobLast - AI Job Security Analyzer',
   description: 'Discover how AI might impact your career and learn actionable steps to stay ahead.',
 }
 

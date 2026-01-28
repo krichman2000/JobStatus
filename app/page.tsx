@@ -64,7 +64,7 @@ export default function Home() {
       {/* Header */}
       <header className="py-6 px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-semibold text-slate-800">Jobstatus</h1>
+          <h1 className="text-2xl font-semibold text-slate-800">WillMyJobLast</h1>
         </div>
       </header>
 
