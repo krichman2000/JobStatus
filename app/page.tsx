@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import JobInput from '@/components/JobInput'
 import MetricCard from '@/components/MetricCard'
+import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
 
 interface MetricData {
@@ -11,6 +12,11 @@ interface MetricData {
 }
 
 interface AnalysisResult {
+  timeline: {
+    threeYear: number
+    fiveYear: number
+    sevenYear: number
+  }
   metrics: {
     routineAutomation: MetricData
     complexAutomation: MetricData
@@ -119,6 +125,18 @@ export default function Home() {
               <p className="text-lg leading-relaxed">
                 {result.summary}
               </p>
+            </div>
+
+            {/* Timeline */}
+            <div className="mb-8">
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-4">
+                Task Automation Timeline
+              </h3>
+              <div className="grid grid-cols-3 gap-4">
+                <TimelineCard years={3} percentage={result.timeline.threeYear} />
+                <TimelineCard years={5} percentage={result.timeline.fiveYear} />
+                <TimelineCard years={7} percentage={result.timeline.sevenYear} />
+              </div>
             </div>
 
             {/* Metrics Grid */}

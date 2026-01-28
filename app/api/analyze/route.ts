@@ -23,11 +23,16 @@ export async function POST(request: Request) {
       )
     }
 
-    const prompt = `Analyze the job title "${jobTitle}" and provide a comprehensive AI impact assessment across 5 key metrics.
+    const prompt = `Analyze the job title "${jobTitle}" and provide a comprehensive AI impact assessment.
 
 Provide your analysis in the following JSON format only, with no additional text:
 
 {
+  "timeline": {
+    "threeYear": <number 0-100>,
+    "fiveYear": <number 0-100>,
+    "sevenYear": <number 0-100>
+  },
   "metrics": {
     "routineAutomation": {
       "score": <number 0-100>,
@@ -65,6 +70,7 @@ Guidelines:
   - Writers/marketers: AI generates drafts, emails, ad copy routinely
   - Analysts: AI summarizes data, writes reports, spots patterns
   - Customer service: Chatbots handle majority of tier-1 inquiries
+- timeline: Overall % of tasks that could be automated at each time horizon (3, 5, 7 years)
 - routineAutomation: % of repetitive, predictable tasks AI could handle
 - complexAutomation: % of judgment-based work AI could meaningfully assist with
 - positionDemand: Expected % change in job openings (negative = fewer jobs, positive = more jobs)
