@@ -32,77 +32,115 @@ export async function POST(request: Request) {
       )
     }
 
-    const prompt = `Analyze the job "${cleanedTitle}" for AI automation impact.
+    const prompt = `Analyze the job "${cleanedTitle}" for AI automation impact using TASK-BASED ANALYSIS.
 
-STEP 1 - VALIDATE: Is this a legitimate, legal job? If NOT (gibberish, illegal activity, not a profession), return:
+STEP 1 - VALIDATE
+Is this a legitimate, legal job? If NOT (gibberish, illegal activity, inappropriate), return:
 {"error": "not_a_job", "message": "Please enter a valid job title like 'Software Engineer', 'Nurse', or 'Accountant'."}
 
-STEP 2 - CATEGORIZE THE JOB TYPE (this determines your scores):
+STEP 2 - IDENTIFY CORE TASKS
+List 5-6 specific tasks this job involves daily/weekly. Be concrete.
 
-CATEGORY A - PHYSICAL/HANDS-ON WORK (Timeline scores: 10-30%)
-Jobs where you physically DO things to objects, animals, or people in person.
-Examples: Plumber, Electrician, Carpenter, Mechanic, Chef, Dog Groomer, Hair Stylist, Massage Therapist, Nurse, Surgeon, Dentist, Physical Therapist, Landscaper, Construction Worker, HVAC Tech, Janitor, Nanny, House Cleaner, Personal Trainer, Mover
-WHY LOW: Robots can't navigate varied environments, handle unpredictable situations, or manipulate diverse objects. Requires physical presence.
+STEP 3 - SCORE EACH TASK
+For each task, determine AI automation potential (0-100%):
+- Physical tasks requiring human presence/dexterity: 5-20%
+- Tasks requiring emotional intelligence/human judgment in person: 10-30%
+- Routine information processing/data work: 60-90%
+- Creative knowledge work: 40-70%
+- Communication/writing tasks: 50-80%
 
-CATEGORY B - HYBRID WORK (Timeline scores: 30-50%)
-Jobs mixing physical presence with significant desk/computer work.
-Examples: Doctor (diagnosis + procedures), Veterinarian, Teacher (in-person), Real Estate Agent, Police Officer, Firefighter, Retail Manager, Restaurant Manager, Event Planner
-WHY MEDIUM: Some tasks are automatable (paperwork, scheduling, research) but core work requires presence.
+STEP 4 - CALCULATE WEIGHTED AVERAGE
+Weight tasks by time spent. This gives the overall automation score.
 
-CATEGORY C - KNOWLEDGE/OFFICE WORK (Timeline scores: 45-75%)
-Jobs done primarily on computers - writing, analyzing, coding, communicating.
-Examples: Software Engineer, Data Analyst, Accountant, Marketing Manager, Writer, Paralegal, Financial Analyst, Customer Service Rep, Recruiter, Graphic Designer, Copywriter
-WHY HIGH: AI already does much of this: writes code, analyzes data, generates content, answers questions.
-
-STEP 3 - Return JSON based on category:
+STEP 5 - Return this JSON structure:
 
 {
+  "tasks": [
+    {
+      "name": "<specific task name>",
+      "timePercent": <% of job time spent on this, all tasks should sum to 100>,
+      "automationRisk": <0-100>,
+      "reason": "<why this score - 1 sentence>"
+    }
+  ],
+  "overallScore": <weighted average of task scores>,
   "timeline": {
-    "threeYear": <based on category above>,
-    "fiveYear": <based on category above>,
-    "sevenYear": <based on category above>
+    "threeYear": <overallScore * 0.6>,
+    "fiveYear": <overallScore>,
+    "sevenYear": <min(overallScore * 1.3, 95)>
   },
   "metrics": {
     "routineAutomation": {
       "score": <0-100>,
-      "description": "<which routine tasks AI could handle>"
+      "description": "<1 sentence>"
     },
     "complexAutomation": {
       "score": <0-100>,
-      "description": "<which complex tasks AI could assist with>"
+      "description": "<1 sentence>"
     },
     "positionDemand": {
       "score": <-50 to +50>,
-      "description": "<job market outlook - negative=decline, positive=growth>"
+      "description": "<1 sentence on job market - negative=decline>"
     },
     "wagePressure": {
       "score": <0-100>,
-      "description": "<pressure on compensation - higher=more pressure>"
+      "description": "<1 sentence>"
     },
     "reskillUrgency": {
       "score": <0-100>,
-      "description": "<how quickly skills must evolve>"
+      "description": "<1 sentence>"
     }
   },
-  "summary": "<2-3 sentences on this role's AI exposure - be accurate to the job category>",
-  "tips": ["<tip 1>", "<tip 2>", "<tip 3>", "<tip 4>"]
+  "summary": "<2-3 sentences explaining the analysis>",
+  "tips": ["<actionable tip 1>", "<actionable tip 2>", "<actionable tip 3>", "<actionable tip 4>"]
 }
 
-IMPORTANT CALIBRATION:
-- Dog Groomer: ~15% (physical work with animals)
-- Plumber: ~15% (physical skilled trade)
-- Nurse: ~25% (physical patient care)
-- Teacher: ~35% (in-person but some admin automation)
-- Accountant: ~55% (mostly computer work)
-- Software Engineer: ~50% (AI writes lots of code now)
-- Copywriter: ~70% (AI generates marketing content)
-- Data Entry Clerk: ~85% (pure computer task)
+CRITICAL RULES FOR SCORING TASKS:
 
-Return ONLY valid JSON.`
+PHYSICAL WORK (score 5-25%):
+- Hands-on patient/animal care
+- Manual repairs, installation, construction
+- Physical cleaning, grooming, cooking
+- Driving, moving, lifting
+- In-person childcare, eldercare
+
+HYBRID WORK (score 25-50%):
+- In-person teaching, training
+- Physical examinations + diagnosis
+- Client meetings + relationship building
+- Supervising physical workers
+- Emergency response
+
+KNOWLEDGE WORK (score 50-85%):
+- Writing reports, emails, content
+- Data analysis and spreadsheets
+- Research and information gathering
+- Scheduling and coordination
+- Basic customer service chat/email
+- Code writing, debugging
+- Design and creative work
+
+EXAMPLE - Accountant:
+- Data entry & bookkeeping (25% time) → 85% automation
+- Financial analysis (25% time) → 60% automation
+- Client meetings (15% time) → 15% automation
+- Tax preparation (20% time) → 70% automation
+- Compliance review (15% time) → 50% automation
+Overall: ~58%
+
+EXAMPLE - Dog Groomer:
+- Bathing & drying dogs (30% time) → 10% automation
+- Haircuts & styling (35% time) → 5% automation
+- Nail trimming & ear cleaning (15% time) → 10% automation
+- Handling anxious animals (10% time) → 5% automation
+- Scheduling & payments (10% time) → 80% automation
+Overall: ~16%
+
+Return ONLY valid JSON, no markdown.`
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 1024,
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2048,
       messages: [
         {
           role: 'user',
@@ -116,7 +154,19 @@ Return ONLY valid JSON.`
       throw new Error('Unexpected response format')
     }
 
-    const result = JSON.parse(content.text)
+    // Clean up response - remove markdown code blocks if present
+    let responseText = content.text.trim()
+    if (responseText.startsWith('```json')) {
+      responseText = responseText.slice(7)
+    } else if (responseText.startsWith('```')) {
+      responseText = responseText.slice(3)
+    }
+    if (responseText.endsWith('```')) {
+      responseText = responseText.slice(0, -3)
+    }
+    responseText = responseText.trim()
+
+    const result = JSON.parse(responseText)
 
     // Check if the AI returned an error for invalid job
     if (result.error === 'not_a_job') {

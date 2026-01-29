@@ -6,13 +6,23 @@ import JobInput from '@/components/JobInput'
 import MetricCard from '@/components/MetricCard'
 import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
+import TaskBreakdown from '@/components/TaskBreakdown'
 
 interface MetricData {
   score: number
   description: string
 }
 
+interface Task {
+  name: string
+  timePercent: number
+  automationRisk: number
+  reason: string
+}
+
 interface AnalysisResult {
+  tasks?: Task[]
+  overallScore?: number
   timeline: {
     threeYear: number
     fiveYear: number
@@ -127,6 +137,11 @@ export default function Home() {
                 {result.summary}
               </p>
             </div>
+
+            {/* Task Breakdown */}
+            {result.tasks && result.overallScore !== undefined && (
+              <TaskBreakdown tasks={result.tasks} overallScore={result.overallScore} />
+            )}
 
             {/* Timeline */}
             <div className="mb-8">
