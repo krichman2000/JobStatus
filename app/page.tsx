@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import JobInput from '@/components/JobInput'
 import MetricCard from '@/components/MetricCard'
@@ -8,6 +8,7 @@ import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
 import TaskBreakdown from '@/components/TaskBreakdown'
 import AlreadyHappening from '@/components/AlreadyHappening'
+import StreamingPreview from '@/components/StreamingPreview'
 
 interface MetricData {
   score: number
@@ -64,29 +65,82 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [streamingText, setStreamingText] = useState('')
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const handleAnalyze = async (jobTitle: string) => {
     setIsLoading(true)
     setError(null)
     setResult(null)
+    setStreamingText('')
+
+    // Create abort controller for cancellation
+    abortControllerRef.current = new AbortController()
+    const timeoutId = setTimeout(() => abortControllerRef.current?.abort(), 60000) // 60s timeout for streaming
 
     try {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobTitle }),
+        body: JSON.stringify({ jobTitle, stream: true }),
+        signal: abortControllerRef.current.signal,
       })
 
       if (!response.ok) {
-        throw new Error('Failed to analyze job. Please try again.')
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to analyze job. Please try again.')
       }
 
-      const data = await response.json()
-      setResult({ ...data, jobTitle })
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('Streaming not supported')
+      }
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+
+        // Process complete SSE messages
+        const lines = buffer.split('\n\n')
+        buffer = lines.pop() || '' // Keep incomplete message in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.slice(6)
+            try {
+              const event = JSON.parse(jsonStr)
+
+              if (event.type === 'chunk') {
+                setStreamingText(prev => prev + event.text)
+              } else if (event.type === 'done') {
+                setResult({ ...event.data, jobTitle })
+                setStreamingText('')
+              } else if (event.type === 'error') {
+                throw new Error(event.error)
+              }
+            } catch (e) {
+              if (e instanceof SyntaxError) continue // Skip malformed JSON
+              throw e
+            }
+          }
+        }
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timed out. Please try again.')
+      } else {
+        setError(err instanceof Error ? err.message : 'Something went wrong')
+      }
+      setStreamingText('')
     } finally {
+      clearTimeout(timeoutId)
       setIsLoading(false)
+      abortControllerRef.current = null
     }
   }
 
@@ -125,14 +179,11 @@ export default function Home() {
         </section>
       )}
 
-      {/* Loading State */}
+      {/* Loading State with Streaming Preview */}
       {isLoading && (
-        <section className="py-12 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-3 text-slate-600">
-              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span>Analyzing your job...</span>
-            </div>
+        <section className="py-8 px-4 pb-20">
+          <div className="max-w-4xl mx-auto">
+            <StreamingPreview text={streamingText} />
           </div>
         </section>
       )}

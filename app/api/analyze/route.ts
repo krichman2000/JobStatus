@@ -5,34 +5,56 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-export async function POST(request: Request) {
-  try {
-    const { jobTitle } = await request.json()
+// In-memory cache for analysis results
+interface CacheEntry {
+  data: unknown
+  timestamp: number
+}
 
-    if (!jobTitle || typeof jobTitle !== 'string') {
-      return NextResponse.json(
-        { error: 'Job title is required' },
-        { status: 400 }
-      )
-    }
+const cache = new Map<string, CacheEntry>()
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+const MAX_CACHE_SIZE = 500
 
-    // Basic input validation
-    const cleanedTitle = jobTitle.trim()
-    if (cleanedTitle.length < 2 || cleanedTitle.length > 100) {
-      return NextResponse.json(
-        { error: 'Please enter a valid job title (2-100 characters).' },
-        { status: 400 }
-      )
-    }
+function normalizeJobTitle(title: string): string {
+  return title.trim().toLowerCase().replace(/\s+/g, ' ')
+}
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { error: 'API key not configured' },
-        { status: 500 }
-      )
-    }
+function getCacheKey(jobTitle: string): string {
+  return `job:${normalizeJobTitle(jobTitle)}`
+}
 
-    const prompt = `Analyze the job "${cleanedTitle}" for AI automation impact.
+function getFromCache(key: string): unknown | null {
+  const entry = cache.get(key)
+  if (!entry) return null
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    cache.delete(key)
+    return null
+  }
+  return entry.data
+}
+
+function setInCache(key: string, data: unknown): void {
+  if (cache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = cache.keys().next().value
+    if (oldestKey) cache.delete(oldestKey)
+  }
+  cache.set(key, { data, timestamp: Date.now() })
+}
+
+function cleanJsonResponse(text: string): string {
+  let cleaned = text.trim()
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7)
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3)
+  }
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3)
+  }
+  return cleaned.trim()
+}
+
+const PROMPT_TEMPLATE = (jobTitle: string) => `Analyze the job "${jobTitle}" for AI automation impact.
 
 STEP 1 - VALIDATE
 If not a legitimate legal job (gibberish, illegal, inappropriate), return:
@@ -126,15 +148,120 @@ ALREADY HAPPENING - cite real examples like:
 
 Return ONLY valid JSON, no markdown.`
 
+export async function POST(request: Request) {
+  try {
+    const { jobTitle, stream: useStreaming } = await request.json()
+
+    if (!jobTitle || typeof jobTitle !== 'string') {
+      return NextResponse.json(
+        { error: 'Job title is required' },
+        { status: 400 }
+      )
+    }
+
+    const cleanedTitle = jobTitle.trim()
+    if (cleanedTitle.length < 2 || cleanedTitle.length > 100) {
+      return NextResponse.json(
+        { error: 'Please enter a valid job title (2-100 characters).' },
+        { status: 400 }
+      )
+    }
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json(
+        { error: 'API key not configured' },
+        { status: 500 }
+      )
+    }
+
+    // Check cache first
+    const cacheKey = getCacheKey(cleanedTitle)
+    const cachedResult = getFromCache(cacheKey)
+    if (cachedResult) {
+      // For streaming requests, send cached result as a single chunk
+      if (useStreaming) {
+        const encoder = new TextEncoder()
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', data: cachedResult })}\n\n`))
+            controller.close()
+          }
+        })
+        return new Response(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Cache': 'HIT'
+          }
+        })
+      }
+      return NextResponse.json(cachedResult, {
+        headers: { 'X-Cache': 'HIT' }
+      })
+    }
+
+    const prompt = PROMPT_TEMPLATE(cleanedTitle)
+
+    // Streaming response
+    if (useStreaming) {
+      const encoder = new TextEncoder()
+      let fullText = ''
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            const messageStream = anthropic.messages.stream({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 3000,
+              messages: [{ role: 'user', content: prompt }],
+            })
+
+            messageStream.on('text', (text) => {
+              fullText += text
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text })}\n\n`))
+            })
+
+            await messageStream.finalMessage()
+
+            // Parse and cache the complete response
+            const cleanedText = cleanJsonResponse(fullText)
+            try {
+              const result = JSON.parse(cleanedText)
+
+              if (result.error === 'not_a_job') {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: result.message || 'Please enter a valid job title.' })}\n\n`))
+              } else {
+                setInCache(cacheKey, result)
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', data: result })}\n\n`))
+              }
+            } catch {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: 'Failed to parse response. Please try again.' })}\n\n`))
+            }
+          } catch (error) {
+            const errorMessage = getErrorMessage(error)
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: errorMessage })}\n\n`))
+          } finally {
+            controller.close()
+          }
+        }
+      })
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'X-Cache': 'MISS'
+        }
+      })
+    }
+
+    // Non-streaming response (fallback)
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 3000,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      messages: [{ role: 'user', content: prompt }],
     })
 
     const content = message.content[0]
@@ -142,21 +269,9 @@ Return ONLY valid JSON, no markdown.`
       throw new Error('Unexpected response format')
     }
 
-    // Clean up response - remove markdown code blocks if present
-    let responseText = content.text.trim()
-    if (responseText.startsWith('```json')) {
-      responseText = responseText.slice(7)
-    } else if (responseText.startsWith('```')) {
-      responseText = responseText.slice(3)
-    }
-    if (responseText.endsWith('```')) {
-      responseText = responseText.slice(0, -3)
-    }
-    responseText = responseText.trim()
-
+    const responseText = cleanJsonResponse(content.text)
     const result = JSON.parse(responseText)
 
-    // Check if the AI returned an error for invalid job
     if (result.error === 'not_a_job') {
       return NextResponse.json(
         { error: result.message || 'Please enter a valid job title.' },
@@ -164,12 +279,35 @@ Return ONLY valid JSON, no markdown.`
       )
     }
 
-    return NextResponse.json(result)
+    setInCache(cacheKey, result)
+    return NextResponse.json(result, {
+      headers: { 'X-Cache': 'MISS' }
+    })
+
   } catch (error) {
     console.error('Analysis error:', error)
     return NextResponse.json(
-      { error: 'Failed to analyze job' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     )
   }
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    if (error.name === 'AbortError') {
+      return 'Analysis timed out. Please try again.'
+    }
+    const msg = error.message.toLowerCase()
+    if (msg.includes('rate limit') || msg.includes('429')) {
+      return 'Too many requests. Please wait a moment and try again.'
+    }
+    if (msg.includes('overloaded') || msg.includes('529')) {
+      return 'Service is busy. Please try again in a few seconds.'
+    }
+    if (error instanceof SyntaxError) {
+      return 'Failed to parse response. Please try again.'
+    }
+  }
+  return 'Failed to analyze job. Please try again.'
 }
