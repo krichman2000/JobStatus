@@ -32,90 +32,73 @@ export async function POST(request: Request) {
       )
     }
 
-    const prompt = `Analyze the job title "${cleanedTitle}" and provide a comprehensive AI impact assessment.
+    const prompt = `Analyze the job "${cleanedTitle}" for AI automation impact.
 
-FIRST: Determine if this is a legitimate, legal occupation. If the input is:
-- Not a real job (e.g., "asdfgh", random words)
-- An illegal activity (e.g., "drug dealer", "hitman")
-- Inappropriate or not a profession
+STEP 1 - VALIDATE: Is this a legitimate, legal job? If NOT (gibberish, illegal activity, not a profession), return:
+{"error": "not_a_job", "message": "Please enter a valid job title like 'Software Engineer', 'Nurse', or 'Accountant'."}
 
-Then return this exact JSON:
-{
-  "error": "not_a_job",
-  "message": "Please enter a valid job title like 'Software Engineer', 'Nurse', or 'Accountant'."
-}
+STEP 2 - CATEGORIZE THE JOB TYPE (this determines your scores):
 
-For legitimate jobs, provide your analysis in this JSON format:
+CATEGORY A - PHYSICAL/HANDS-ON WORK (Timeline scores: 10-30%)
+Jobs where you physically DO things to objects, animals, or people in person.
+Examples: Plumber, Electrician, Carpenter, Mechanic, Chef, Dog Groomer, Hair Stylist, Massage Therapist, Nurse, Surgeon, Dentist, Physical Therapist, Landscaper, Construction Worker, HVAC Tech, Janitor, Nanny, House Cleaner, Personal Trainer, Mover
+WHY LOW: Robots can't navigate varied environments, handle unpredictable situations, or manipulate diverse objects. Requires physical presence.
+
+CATEGORY B - HYBRID WORK (Timeline scores: 30-50%)
+Jobs mixing physical presence with significant desk/computer work.
+Examples: Doctor (diagnosis + procedures), Veterinarian, Teacher (in-person), Real Estate Agent, Police Officer, Firefighter, Retail Manager, Restaurant Manager, Event Planner
+WHY MEDIUM: Some tasks are automatable (paperwork, scheduling, research) but core work requires presence.
+
+CATEGORY C - KNOWLEDGE/OFFICE WORK (Timeline scores: 45-75%)
+Jobs done primarily on computers - writing, analyzing, coding, communicating.
+Examples: Software Engineer, Data Analyst, Accountant, Marketing Manager, Writer, Paralegal, Financial Analyst, Customer Service Rep, Recruiter, Graphic Designer, Copywriter
+WHY HIGH: AI already does much of this: writes code, analyzes data, generates content, answers questions.
+
+STEP 3 - Return JSON based on category:
 
 {
   "timeline": {
-    "threeYear": <number 0-100>,
-    "fiveYear": <number 0-100>,
-    "sevenYear": <number 0-100>
+    "threeYear": <based on category above>,
+    "fiveYear": <based on category above>,
+    "sevenYear": <based on category above>
   },
   "metrics": {
     "routineAutomation": {
-      "score": <number 0-100>,
-      "description": "<1 sentence on which routine/repetitive tasks are most affected>"
+      "score": <0-100>,
+      "description": "<which routine tasks AI could handle>"
     },
     "complexAutomation": {
-      "score": <number 0-100>,
-      "description": "<1 sentence on which judgment-based or complex tasks could be automated>"
+      "score": <0-100>,
+      "description": "<which complex tasks AI could assist with>"
     },
     "positionDemand": {
-      "score": <number -50 to +50>,
-      "description": "<1 sentence on expected job market changes - negative means decline, positive means growth>"
+      "score": <-50 to +50>,
+      "description": "<job market outlook - negative=decline, positive=growth>"
     },
     "wagePressure": {
-      "score": <number 0-100>,
-      "description": "<1 sentence on expected impact on compensation - higher means more downward pressure>"
+      "score": <0-100>,
+      "description": "<pressure on compensation - higher=more pressure>"
     },
     "reskillUrgency": {
-      "score": <number 0-100>,
-      "description": "<1 sentence on how quickly skills need to evolve>"
+      "score": <0-100>,
+      "description": "<how quickly skills must evolve>"
     }
   },
-  "summary": "<2-3 sentences giving an honest overall assessment of this role's AI exposure>",
-  "tips": [
-    "<specific, actionable tip 1>",
-    "<specific, actionable tip 2>",
-    "<specific, actionable tip 3>",
-    "<specific, actionable tip 4>"
-  ]
+  "summary": "<2-3 sentences on this role's AI exposure - be accurate to the job category>",
+  "tips": ["<tip 1>", "<tip 2>", "<tip 3>", "<tip 4>"]
 }
 
-CRITICAL - Understand what AI CAN and CANNOT automate:
+IMPORTANT CALIBRATION:
+- Dog Groomer: ~15% (physical work with animals)
+- Plumber: ~15% (physical skilled trade)
+- Nurse: ~25% (physical patient care)
+- Teacher: ~35% (in-person but some admin automation)
+- Accountant: ~55% (mostly computer work)
+- Software Engineer: ~50% (AI writes lots of code now)
+- Copywriter: ~70% (AI generates marketing content)
+- Data Entry Clerk: ~85% (pure computer task)
 
-AI CAN automate (high scores):
-- Information processing, research, data analysis
-- Text/content generation (writing, emails, reports)
-- Image/video creation and editing
-- Code generation and debugging
-- Pattern recognition in data
-- Customer service chat/email
-- Scheduling, bookkeeping, data entry
-
-AI CANNOT automate (low scores, typically under 30%):
-- Physical labor requiring human presence (plumbing, electrical, construction)
-- Hands-on healthcare (nursing, surgery, physical therapy, dental work)
-- In-person human services (haircuts, massage, childcare, elderly care)
-- Physical repair and maintenance work
-- Work in unpredictable physical environments
-- Jobs requiring physical dexterity with varied objects
-- Emotional support and human connection roles
-
-Guidelines:
-- Be realistic about physical vs. knowledge work distinction
-- Skilled trades (electrician, plumber, HVAC) are highly protected - typically under 25% automation
-- Healthcare roles requiring physical patient care are protected - typically under 35%
-- Knowledge work and office jobs face much higher automation risk
-- Be brutally honest about knowledge work:
-  - Software engineers: AI writes 30-50% of code at many companies today
-  - Writers/marketers: AI generates drafts, emails, ad copy routinely
-  - Analysts: AI summarizes data, writes reports, spots patterns
-  - Customer service: Chatbots handle majority of tier-1 inquiries
-- Don't lowball physical jobs OR inflate knowledge job safety
-- Return ONLY valid JSON, no markdown or explanation.`
+Return ONLY valid JSON.`
 
     const message = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
