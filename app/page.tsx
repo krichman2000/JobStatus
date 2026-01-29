@@ -7,22 +7,42 @@ import MetricCard from '@/components/MetricCard'
 import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
 import TaskBreakdown from '@/components/TaskBreakdown'
+import AlreadyHappening from '@/components/AlreadyHappening'
 
 interface MetricData {
   score: number
   description: string
 }
 
+interface AutomationRisk {
+  low: number
+  mid: number
+  high: number
+}
+
 interface Task {
   name: string
   timePercent: number
-  automationRisk: number
+  automationRisk: AutomationRisk | number
+  aiTools?: string[]
   reason: string
+}
+
+interface OverallScore {
+  low: number
+  mid: number
+  high: number
+}
+
+interface AlreadyHappeningExample {
+  example: string
+  detail: string
 }
 
 interface AnalysisResult {
   tasks?: Task[]
-  overallScore?: number
+  overallScore?: OverallScore | number
+  alreadyHappening?: AlreadyHappeningExample[]
   timeline: {
     threeYear: number
     fiveYear: number
@@ -141,6 +161,11 @@ export default function Home() {
             {/* Task Breakdown */}
             {result.tasks && result.overallScore !== undefined && (
               <TaskBreakdown tasks={result.tasks} overallScore={result.overallScore} />
+            )}
+
+            {/* Already Happening */}
+            {result.alreadyHappening && result.alreadyHappening.length > 0 && (
+              <AlreadyHappening examples={result.alreadyHappening} />
             )}
 
             {/* Timeline */}

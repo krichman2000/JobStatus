@@ -32,115 +32,103 @@ export async function POST(request: Request) {
       )
     }
 
-    const prompt = `Analyze the job "${cleanedTitle}" for AI automation impact using TASK-BASED ANALYSIS.
+    const prompt = `Analyze the job "${cleanedTitle}" for AI automation impact.
 
 STEP 1 - VALIDATE
-Is this a legitimate, legal job? If NOT (gibberish, illegal activity, inappropriate), return:
+If not a legitimate legal job (gibberish, illegal, inappropriate), return:
 {"error": "not_a_job", "message": "Please enter a valid job title like 'Software Engineer', 'Nurse', or 'Accountant'."}
 
-STEP 2 - IDENTIFY CORE TASKS
-List 5-6 specific tasks this job involves daily/weekly. Be concrete.
+STEP 2 - REFERENCE RESEARCH BENCHMARKS
+Use these Oxford/McKinsey automation probability benchmarks as anchors:
+- Telemarketer: 99% | Data Entry Clerk: 98% | Bookkeeper: 98%
+- Paralegal: 94% | Retail Salesperson: 92% | Fast Food Cook: 81%
+- Truck Driver: 79% | Accountant: 94% | Financial Analyst: 54%
+- Software Developer: 48% | Writer/Author: 45% | Graphic Designer: 43%
+- Marketing Manager: 42% | Lawyer: 35% | Teacher: 27%
+- Physician: 23% | Registered Nurse: 18% | Physical Therapist: 14%
+- Dentist: 13% | Electrician: 11% | Plumber: 9%
+- Surgeon: 4% | Mental Health Counselor: 3%
+Adjust your estimates to align with these research-backed figures.
 
-STEP 3 - SCORE EACH TASK
-For each task, determine AI automation potential (0-100%):
-- Physical tasks requiring human presence/dexterity: 5-20%
-- Tasks requiring emotional intelligence/human judgment in person: 10-30%
-- Routine information processing/data work: 60-90%
-- Creative knowledge work: 40-70%
-- Communication/writing tasks: 50-80%
+STEP 3 - IDENTIFY 5-6 CORE TASKS with specific AI tools that can do them
 
-STEP 4 - CALCULATE WEIGHTED AVERAGE
-Weight tasks by time spent. This gives the overall automation score.
-
-STEP 5 - Return this JSON structure:
+STEP 4 - Return this JSON:
 
 {
   "tasks": [
     {
-      "name": "<specific task name>",
-      "timePercent": <% of job time spent on this, all tasks should sum to 100>,
-      "automationRisk": <0-100>,
-      "reason": "<why this score - 1 sentence>"
+      "name": "<specific task>",
+      "timePercent": <% of job time, sum to 100>,
+      "automationRisk": {
+        "low": <conservative estimate>,
+        "mid": <likely estimate>,
+        "high": <aggressive estimate>
+      },
+      "aiTools": ["<specific tool 1>", "<specific tool 2>"],
+      "reason": "<1 sentence why>"
     }
   ],
-  "overallScore": <weighted average of task scores>,
+  "overallScore": {
+    "low": <weighted avg of low estimates>,
+    "mid": <weighted avg of mid estimates>,
+    "high": <weighted avg of high estimates>
+  },
+  "alreadyHappening": [
+    {
+      "example": "<specific company or industry using AI for this>",
+      "detail": "<1 sentence on what they're doing>"
+    },
+    {
+      "example": "<another example>",
+      "detail": "<detail>"
+    }
+  ],
   "timeline": {
-    "threeYear": <overallScore * 0.6>,
-    "fiveYear": <overallScore>,
-    "sevenYear": <min(overallScore * 1.3, 95)>
+    "threeYear": <overallScore.mid * 0.6>,
+    "fiveYear": <overallScore.mid>,
+    "sevenYear": <min(overallScore.mid * 1.3, 95)>
   },
   "metrics": {
-    "routineAutomation": {
-      "score": <0-100>,
-      "description": "<1 sentence>"
-    },
-    "complexAutomation": {
-      "score": <0-100>,
-      "description": "<1 sentence>"
-    },
-    "positionDemand": {
-      "score": <-50 to +50>,
-      "description": "<1 sentence on job market - negative=decline>"
-    },
-    "wagePressure": {
-      "score": <0-100>,
-      "description": "<1 sentence>"
-    },
-    "reskillUrgency": {
-      "score": <0-100>,
-      "description": "<1 sentence>"
-    }
+    "routineAutomation": {"score": <0-100>, "description": "<1 sentence>"},
+    "complexAutomation": {"score": <0-100>, "description": "<1 sentence>"},
+    "positionDemand": {"score": <-50 to +50>, "description": "<1 sentence>"},
+    "wagePressure": {"score": <0-100>, "description": "<1 sentence>"},
+    "reskillUrgency": {"score": <0-100>, "description": "<1 sentence>"}
   },
-  "summary": "<2-3 sentences explaining the analysis>",
-  "tips": ["<actionable tip 1>", "<actionable tip 2>", "<actionable tip 3>", "<actionable tip 4>"]
+  "summary": "<2-3 sentences>",
+  "tips": ["<tip 1>", "<tip 2>", "<tip 3>", "<tip 4>"]
 }
 
-CRITICAL RULES FOR SCORING TASKS:
+AI TOOLS TO REFERENCE (use specific names):
+- Writing/Content: ChatGPT, Claude, Jasper, Copy.ai, Grammarly
+- Coding: GitHub Copilot, Cursor, Replit AI, Amazon CodeWhisperer
+- Data Analysis: ChatGPT Advanced Data Analysis, Tableau AI, Power BI Copilot
+- Design: Midjourney, DALL-E, Adobe Firefly, Canva AI
+- Customer Service: Intercom Fin, Zendesk AI, Drift
+- Research: Perplexity, Elicit, Consensus
+- Legal: Harvey AI, CoCounsel, Casetext
+- Sales/CRM: Salesforce Einstein, Gong, Outreach AI
+- HR/Recruiting: HireVue, Pymetrics, LinkedIn Recruiter AI
+- Accounting: Vic.ai, Botkeeper, QuickBooks AI
+- Medical: Epic AI, Nuance DAX, Viz.ai
+- Scheduling: Calendly AI, x.ai, Clockwise
 
-PHYSICAL WORK (score 5-25%):
-- Hands-on patient/animal care
-- Manual repairs, installation, construction
-- Physical cleaning, grooming, cooking
-- Driving, moving, lifting
-- In-person childcare, eldercare
+CONFIDENCE RANGES:
+- Low estimate: Conservative, only counting tasks AI does reliably today
+- Mid estimate: Likely scenario in 3-5 years with current trajectory
+- High estimate: Aggressive, if AI advancement accelerates
 
-HYBRID WORK (score 25-50%):
-- In-person teaching, training
-- Physical examinations + diagnosis
-- Client meetings + relationship building
-- Supervising physical workers
-- Emergency response
-
-KNOWLEDGE WORK (score 50-85%):
-- Writing reports, emails, content
-- Data analysis and spreadsheets
-- Research and information gathering
-- Scheduling and coordination
-- Basic customer service chat/email
-- Code writing, debugging
-- Design and creative work
-
-EXAMPLE - Accountant:
-- Data entry & bookkeeping (25% time) → 85% automation
-- Financial analysis (25% time) → 60% automation
-- Client meetings (15% time) → 15% automation
-- Tax preparation (20% time) → 70% automation
-- Compliance review (15% time) → 50% automation
-Overall: ~58%
-
-EXAMPLE - Dog Groomer:
-- Bathing & drying dogs (30% time) → 10% automation
-- Haircuts & styling (35% time) → 5% automation
-- Nail trimming & ear cleaning (15% time) → 10% automation
-- Handling anxious animals (10% time) → 5% automation
-- Scheduling & payments (10% time) → 80% automation
-Overall: ~16%
+ALREADY HAPPENING - cite real examples like:
+- "JPMorgan uses COIN to review legal documents"
+- "Klarna replaced 700 customer service agents with AI"
+- "GitHub reports Copilot writes 46% of code for users"
+- "Radiology AI detects cancers as accurately as doctors at hospitals like Mayo Clinic"
 
 Return ONLY valid JSON, no markdown.`
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
+      max_tokens: 3000,
       messages: [
         {
           role: 'user',
