@@ -211,6 +211,26 @@ export default function JobsPage() {
             These estimates are based on current AI trends and research.
             Use them as a starting point for your career planning.
           </p>
+          <p className="mt-4">
+            If you like stuff like this, check out my{' '}
+            <a
+              href="https://www.youtube.com/@AppliedIntelligencePod"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              podcast
+            </a>
+            {' '}and{' '}
+            <a
+              href="https://www.tiktok.com/@appliedintelligen"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              TikTok
+            </a>
+          </p>
         </div>
       </footer>
     </main>
