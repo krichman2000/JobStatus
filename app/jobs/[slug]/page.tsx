@@ -244,11 +244,6 @@ export default async function JobPage({ params }: PageProps) {
               TikTok
             </a>
           </p>
-          <p className="mt-4">
-            <Link href="/hi-tenlay" className="text-slate-400 hover:text-slate-600">
-              hi tenlay
-            </Link>
-          </p>
         </div>
       </footer>
     </main>
