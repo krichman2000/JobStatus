@@ -83,9 +83,27 @@ export default function JobsPage() {
           <h1 className="text-3xl font-bold text-slate-900 mb-4 text-center">
             Browse All Jobs
           </h1>
-          <p className="text-lg text-slate-600 mb-8 text-center max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 mb-6 text-center max-w-2xl mx-auto">
             Explore AI impact assessments for {jobs.length} careers. Click any job to see detailed analysis.
           </p>
+
+          {/* Quick links */}
+          <div className="flex justify-center gap-6 mb-8">
+            <Link
+              href="/most-secure"
+              className="flex items-center gap-2 text-green-600 hover:text-green-800 font-medium transition-colors"
+            >
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              Most Secure Jobs
+            </Link>
+            <Link
+              href="/least-secure"
+              className="flex items-center gap-2 text-red-600 hover:text-red-800 font-medium transition-colors"
+            >
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+              Least Secure Jobs
+            </Link>
+          </div>
 
           {/* Search and Filter */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8">

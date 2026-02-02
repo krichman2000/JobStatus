@@ -15,6 +15,11 @@ export interface JobAnalysis {
   }
   summary: string
   tips: string[]
+  saferAlternatives?: {
+    title: string
+    slug: string | null
+    reason: string
+  }[]
 }
 
 export const jobs: JobAnalysis[] = [
@@ -1333,4 +1338,20 @@ export function getRelatedJobs(slug: string, count: number = 4): JobAnalysis[] {
     .sort((a, b) => a.score - b.score)
     .slice(0, count)
     .map(item => item.job)
+}
+
+export function getMostSecureJobs(limit: number = 25): JobAnalysis[] {
+  return [...jobs]
+    .sort((a, b) => a.timeline.fiveYear - b.timeline.fiveYear)
+    .slice(0, limit)
+}
+
+export function getLeastSecureJobs(limit: number = 25): JobAnalysis[] {
+  return [...jobs]
+    .sort((a, b) => b.timeline.fiveYear - a.timeline.fiveYear)
+    .slice(0, limit)
+}
+
+export function getJobCount(): number {
+  return jobs.length
 }

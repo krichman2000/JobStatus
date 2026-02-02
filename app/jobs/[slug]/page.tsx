@@ -6,6 +6,7 @@ import MetricCard from '@/components/MetricCard'
 import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
 import ShareButtons from '@/components/ShareButtons'
+import SaferAlternatives from '@/components/SaferAlternatives'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -131,6 +132,14 @@ export default async function JobPage({ params }: PageProps) {
               icon="reskill"
             />
           </div>
+
+          {/* Safer Alternatives */}
+          {job.saferAlternatives && job.saferAlternatives.length > 0 && (
+            <SaferAlternatives
+              alternatives={job.saferAlternatives}
+              currentJobTitle={job.title}
+            />
+          )}
 
           {/* Tips */}
           <TipsList tips={job.tips} />

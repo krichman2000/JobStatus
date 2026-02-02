@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import JobInput from '@/components/JobInput'
+import { getJobCount } from '@/data/jobs'
 import MetricCard from '@/components/MetricCard'
 import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
@@ -165,6 +166,24 @@ export default function Home() {
           </p>
 
           <JobInput onSubmit={handleAnalyze} isLoading={isLoading} />
+
+          {/* Quick links to secure/insecure jobs */}
+          <div className="flex justify-center gap-8 mt-6">
+            <Link
+              href="/most-secure"
+              className="flex items-center gap-2 text-green-600 hover:text-green-800 font-medium text-lg transition-colors"
+            >
+              <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+              Most Secure Jobs
+            </Link>
+            <Link
+              href="/least-secure"
+              className="flex items-center gap-2 text-red-600 hover:text-red-800 font-medium text-lg transition-colors"
+            >
+              <span className="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+              Least Secure Jobs
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -311,7 +330,7 @@ export default function Home() {
                 href="/jobs"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Browse all 100 jobs &rarr;
+                Browse all {getJobCount()} jobs &rarr;
               </Link>
             </div>
           </div>
