@@ -364,6 +364,11 @@ export default function Home() {
               TikTok
             </a>
           </p>
+          <p className="mt-4">
+            <Link href="/hi-tenlay" className="text-slate-400 hover:text-slate-600">
+              hi tenlay
+            </Link>
+          </p>
         </div>
       </footer>
     </main>
