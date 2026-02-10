@@ -5,6 +5,9 @@ import { getMostSecureJobs, getJobCount } from '@/data/jobs'
 export const metadata: Metadata = {
   title: 'Most AI-Resistant Jobs - Will My Job Last',
   description: 'Discover the top 25 careers most resistant to AI automation. These jobs have the lowest automation risk based on comprehensive AI analysis.',
+  alternates: {
+    canonical: '/most-secure',
+  },
 }
 
 export default function MostSecurePage() {

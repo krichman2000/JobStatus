@@ -5,6 +5,9 @@ import { getLeastSecureJobs, getJobCount } from '@/data/jobs'
 export const metadata: Metadata = {
   title: 'Jobs Most at Risk from AI - Will My Job Last',
   description: 'Discover the top 25 careers most vulnerable to AI automation. Understand the risks and find actionable steps to future-proof your career.',
+  alternates: {
+    canonical: '/least-secure',
+  },
 }
 
 export default function LeastSecurePage() {

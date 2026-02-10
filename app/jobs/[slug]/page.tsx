@@ -7,6 +7,7 @@ import TimelineCard from '@/components/TimelineCard'
 import TipsList from '@/components/TipsList'
 import ShareButtons from '@/components/ShareButtons'
 import SaferAlternatives from '@/components/SaferAlternatives'
+import JobFAQ from '@/components/JobFAQ'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -28,6 +29,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `Will My ${job.title} Job Last? - AI Impact Analysis`,
     description: `Discover how AI will impact ${job.title} careers. Get an honest assessment of automation risk, job market outlook, and actionable steps to stay ahead.`,
+    alternates: {
+      canonical: `/jobs/${slug}`,
+    },
   }
 }
 
@@ -39,11 +43,37 @@ export default async function JobPage({ params }: PageProps) {
     notFound()
   }
 
-  const relatedJobs = getRelatedJobs(slug, 4)
+  const relatedJobs = getRelatedJobs(slug, 8)
   const shareUrl = `https://willmyjoblast.com/jobs/${slug}`
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: `Will My ${job.title} Job Last? - AI Impact Analysis`,
+    description: `Discover how AI will impact ${job.title} careers. Get an honest assessment of automation risk, job market outlook, and actionable steps to stay ahead.`,
+    url: shareUrl,
+    author: {
+      '@type': 'Organization',
+      name: 'Will My Job Last',
+      url: 'https://willmyjoblast.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Will My Job Last',
+      url: 'https://willmyjoblast.com',
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': shareUrl,
+    },
+  }
 
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Header */}
       <header className="py-6 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -70,6 +100,19 @@ export default async function JobPage({ params }: PageProps) {
             <span className="inline-block bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-medium">
               {job.title}
             </span>
+          </div>
+
+          {/* Key Statistics - LLM-friendly quotable facts */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8">
+            <p className="text-slate-700 text-sm leading-relaxed">
+              <strong>Key Finding:</strong> As of 2026, {job.title}s face a <strong>{job.timeline.fiveYear}% automation risk</strong> over the next 5 years.
+              {' '}{job.timeline.fiveYear < 40
+                ? `This makes ${job.title} one of the more AI-resistant careers.`
+                : job.timeline.fiveYear < 60
+                  ? `This indicates moderate vulnerability to AI automation.`
+                  : `This places ${job.title} among the careers most vulnerable to AI disruption.`}
+              {' '}Routine tasks have a {job.metrics.routineAutomation.score}% automation likelihood, while complex tasks have a {job.metrics.complexAutomation.score}% automation likelihood.
+            </p>
           </div>
 
           {/* Summary */}
@@ -143,6 +186,17 @@ export default async function JobPage({ params }: PageProps) {
 
           {/* Tips */}
           <TipsList tips={job.tips} />
+
+          {/* FAQ Section - LLM-friendly Q&A format */}
+          <JobFAQ
+            jobTitle={job.title}
+            fiveYearRisk={job.timeline.fiveYear}
+            threeYearRisk={job.timeline.threeYear}
+            sevenYearRisk={job.timeline.sevenYear}
+            routineAutomation={job.metrics.routineAutomation.score}
+            complexAutomation={job.metrics.complexAutomation.score}
+            reskillUrgency={job.metrics.reskillUrgency.score}
+          />
 
           {/* Share */}
           <div className="mt-10 pt-8 border-t border-slate-200">

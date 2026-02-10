@@ -3,8 +3,20 @@ import Script from 'next/script'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Will My Job Last - AI Job Security Analyzer',
-  description: 'Discover how AI might impact your career and learn actionable steps to stay ahead.',
+  metadataBase: new URL('https://willmyjoblast.com'),
+  title: {
+    default: 'Will My Job Last? - Free AI Job Security Analyzer',
+    template: '%s | Will My Job Last',
+  },
+  description: 'Free AI career impact analyzer. Get honest assessments of automation risk, job market outlook, and actionable tips to future-proof your career. Analyze 96+ jobs.',
+  keywords: ['AI job impact', 'automation risk', 'career planning', 'job security', 'AI replacing jobs', 'future proof career'],
+  alternates: {
+    canonical: './',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({
